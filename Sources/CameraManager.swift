@@ -21,7 +21,7 @@ public enum CameraState {
 }
 
 public enum CameraDevice {
-    case front, back
+    case front, back, uWide
 }
 
 public enum CameraFlashMode: Int {
@@ -220,6 +220,12 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
         return !frontDevices.isEmpty
     }()
     
+    /// Property to determine if current device has Ultra Wide camera.
+    open var hasuWideCamera: Bool = {
+        let frontDevices = AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .back)
+        return (frontDevices != nil)
+    }()
+    
     /// Property to determine if current device has flash.
     open var hasFlash: Bool = {
         let hasFlashDevices = AVCaptureDevice.videoDevices.filter { $0.hasFlash }
@@ -349,6 +355,10 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
     
     fileprivate lazy var backCameraDevice: AVCaptureDevice? = {
         AVCaptureDevice.videoDevices.filter { $0.position == .back }.first
+    }()
+    
+    fileprivate lazy var uWideCameraDevice: AVCaptureDevice? = {
+        AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .back)
     }()
     
     fileprivate lazy var mic: AVCaptureDevice? = {
@@ -871,6 +881,8 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 return device.hasFlash
             } else if device.position == .front, cameraDevice == .front {
                 return device.hasFlash
+            } else if device.position == .back, cameraDevice == .uWide {
+                return device.hasFlash
             }
         }
         return false
@@ -965,6 +977,9 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 device = backCameraDevice
             case .front:
                 device = frontCameraDevice
+            case .uWide:
+                device = uWideCameraDevice
+            }
         }
         
         do {
@@ -1012,6 +1027,9 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 device = backCameraDevice
             case .front:
                 device = frontCameraDevice
+            case .uWide:
+                device = uWideCameraDevice
+            }
         }
         
         _changeExposureMode(mode: .continuousAutoExposure)
@@ -1177,6 +1195,8 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 device = backCameraDevice
             case .front:
                 device = frontCameraDevice
+            case .uWide:
+                device = uWideCameraDevice
         }
         if device?.exposureMode == mode {
             return
@@ -1204,6 +1224,8 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                     device = backCameraDevice
                 case .front:
                     device = frontCameraDevice
+                case .uWide:
+                    device = uWideCameraDevice
             }
             
             guard let videoDevice = device else {
@@ -1547,6 +1569,8 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
             maxZoom = backCameraDevice.activeFormat.videoMaxZoomFactor
         } else if cameraDevice == .front, let frontCameraDevice = frontCameraDevice {
             maxZoom = frontCameraDevice.activeFormat.videoMaxZoomFactor
+        } else if cameraDevice == .uWide, let uWideCameraDevice = uWideCameraDevice {
+            maxZoom = uWideCameraDevice.activeFormat.videoMaxZoomFactor
         }
         
         maxZoomScale = maxZoom
@@ -1815,6 +1839,11 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                         !inputs.contains(validBackDevice) {
                         validCaptureSession.addInput(validBackDevice)
                 }
+                case .uWide:
+                    if let validuWideDevice = _deviceInputFromDevice(uWideCameraDevice),
+                        !inputs.contains(validuWideDevice) {
+                         validCaptureSession.addInput(validuWideDevice)
+                    }
             }
         }
     }
