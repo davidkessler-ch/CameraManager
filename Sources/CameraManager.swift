@@ -281,7 +281,7 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 _updateCameraDevice(cameraDevice)
                 _updateIlluminationMode(flashMode)
                 _setupMaxZoomScale()
-                _zoom(2)
+                _zoom(0)
                 _orientationChanged()
             }
         }
@@ -313,7 +313,7 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                     _setupOutputMode(cameraOutputMode, oldCameraOutputMode: oldValue)
                 }
                 _setupMaxZoomScale()
-                _zoom(2)
+                _zoom(0)
             }
         }
     }
@@ -738,11 +738,6 @@ open class CameraManager: NSObject, AVCaptureFileOutputRecordingDelegate, UIGest
                 
                 // add stuff to this
                 let settings = AVCapturePhotoSettings()
-                let previewPixelType = settings.availablePreviewPhotoPixelFormatTypes.first!
-                let previewFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPixelType,
-                                     kCVPixelBufferWidthKey as String: 160,
-                                     kCVPixelBufferHeightKey as String: 160]
-                settings.previewPhotoFormat = previewFormat
                 
                 cameraOutput.capturePhoto(with: settings, delegate: self)
                 
