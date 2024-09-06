@@ -107,18 +107,16 @@ public enum CaptureError: Error {
     case assetNotSaved
 }
 
+@available(iOS 13.0, *)
 extension CameraManager: AVCapturePhotoCaptureDelegate {
-    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photoSampleBuffer: CMSampleBuffer?, previewPhoto previewPhotoSampleBuffer: CMSampleBuffer?, resolvedSettings: AVCaptureResolvedPhotoSettings, bracketSettings: AVCaptureBracketedStillImageSettings?, error: Error?) {
-        
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: (any Error)?) {
         if let error = error {
             _show(NSLocalizedString("Error", comment: ""), message: error.localizedDescription)
             imageCompletion?(.failure(error))
             return
         }
-        
-        if let sampleBuffer = photoSampleBuffer, let previewBuffer = previewPhotoSampleBuffer, let dataImage = AVCapturePhotoOutput.jpegPhotoDataRepresentation(forJPEGSampleBuffer: sampleBuffer, previewPhotoSampleBuffer: previewBuffer) {
-            print("image: \(UIImage(data: dataImage)?.size)") // Your Image
-            imageCompletion?(CaptureResult(dataImage))
+        if let imageData = photo.fileDataRepresentation() {
+            imageCompletion?(CaptureResult(imageData))
         }
     }
 }
